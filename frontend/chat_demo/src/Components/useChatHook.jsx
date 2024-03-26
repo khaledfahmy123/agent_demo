@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { socket } from "../socket";
 
-// useForm custom hook
+
 export const useChat = (initialValues) => {
-  // Initialize state with initialValues
+
   const [messages, setMessages] = useState([
     { direction: "incoming", message: "Hello! How can i help you?"},
   ]);
