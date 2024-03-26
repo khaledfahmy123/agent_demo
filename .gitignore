@@ -1,0 +1,11 @@
+.venv/
+
+db/
+
+**/__pycache__/
+
+.env
+
+db_init.py
+
+config.json
