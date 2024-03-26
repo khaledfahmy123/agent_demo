@@ -46,7 +46,6 @@ export const useChat = (initialValues) => {
 
 
 
-  // Handle changes to form inputs
   const sendMessage = (msg) => {
     setMessages((prev) => [...prev, { direction: "outgoing", message: msg }]);
     try {
