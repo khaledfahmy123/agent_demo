@@ -3,7 +3,7 @@ from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader, T
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def load_docs():
-    doc_path = "resources/global_pdfs/cbioportal/docs"
+    doc_path = "resources/global_pdfs/docs"
     
     docs = DirectoryLoader(doc_path, glob="**/*.md")
     docs = docs.load()

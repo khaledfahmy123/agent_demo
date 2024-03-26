@@ -47,5 +47,5 @@ class CBio_Portal_Agent():
     
     def format_docs(self, docs):
         print(docs)
-        self.sources = ["https://github.com/cBioPortal/cbioportal/tree/master/docs" + doc.metadata["source"][37:] for doc in docs]
+        self.sources = ["https://github.com/cBioPortal/cbioportal/tree/master/docs" + doc.metadata["source"][26:] for doc in docs]
         return "\n\n".join(doc.page_content for doc in docs)
