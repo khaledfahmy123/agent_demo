@@ -6,9 +6,10 @@ from langchain_openai import ChatOpenAI
 from langchain.schema.output_parser import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.callbacks import BaseCallbackHandler
-from langchain import hub
+from langchain.prompts import PromptTemplate
 
 from models.schemas.chat import ChatRequest
+
 
 class AgentObserver(BaseCallbackHandler):
     async def on_llm_new_token(self, token: str, **kwargs) -> None:
@@ -19,22 +20,31 @@ class AgentObserver(BaseCallbackHandler):
         print(l, response)
 
 
-
 class CBio_Portal_Agent():
-    
-    prompt = hub.pull("rlm/rag-prompt")
+
+    prompt = PromptTemplate.from_template("""
+                                          You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. keep the answer concise.
+
+                                            Question: {question} 
+
+                                            Context: {context} 
+
+                                            Answer:
+                                          """)
     llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
     sources = []
-    
+
     def __init__(self, vectorstore) -> None:
         self.retriever = vectorstore.as_retriever()
 
     async def generate_response(self, message: str) -> AsyncGenerator[str, None]:
-        
-        rag_chain_from_docs = (RunnablePassthrough.assign(context=(lambda x: self.format_docs(x["context"]))) | self.prompt | self.llm | StrOutputParser())
-        
-        rag_chain_with_source = RunnableParallel({"context": self.retriever, "question": RunnablePassthrough()}).assign(answer=rag_chain_from_docs)
-        
+
+        rag_chain_from_docs = (RunnablePassthrough.assign(context=(
+            lambda x: self.format_docs(x["context"]))) | self.prompt | self.llm | StrOutputParser())
+
+        rag_chain_with_source = RunnableParallel(
+            {"context": self.retriever, "question": RunnablePassthrough()}).assign(answer=rag_chain_from_docs)
+
         async for chunk in rag_chain_with_source.astream(message):
             if "answer" in chunk:
                 yield chunk["answer"]
@@ -44,8 +54,9 @@ class CBio_Portal_Agent():
 
         async for content in self.generate_response(message=request.message):
             yield content
-    
+
     def format_docs(self, docs):
         print(docs)
-        self.sources = ["https://github.com/cBioPortal/cbioportal/tree/master/docs" + doc.metadata["source"][26:] for doc in docs]
+        self.sources = ["https://github.com/cBioPortal/cbioportal/tree/master/docs" +
+                        doc.metadata["source"][26:] for doc in docs]
         return "\n\n".join(doc.page_content for doc in docs)
